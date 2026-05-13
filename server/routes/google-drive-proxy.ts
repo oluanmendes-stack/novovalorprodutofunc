@@ -65,12 +65,21 @@ export const proxyGoogleDriveImage: RequestHandler = async (req, res) => {
       console.error(
         `[GoogleDriveProxy] ❌ Failed to fetch image: ${response.status} ${response.statusText}`
       );
-      console.error(`[GoogleDriveProxy]    URL tentada: ${targetUrl.substring(0, 100)}`);
+      console.error(`[GoogleDriveProxy]    File ID: ${fileId}`);
+      console.error(`[GoogleDriveProxy]    URL: ${url}`);
       const errorText = await response.text().catch(() => "");
-      if (errorText) console.error(`[GoogleDriveProxy]    Response: ${errorText.substring(0, 200)}`);
-      return res.status(response.status).json({
-        error: `Failed to fetch image: ${response.statusText}`,
-        status: response.status,
+      console.error(`[GoogleDriveProxy]    Response body: ${errorText.substring(0, 500)}`);
+
+      // Return 500 with detailed error info for debugging
+      return res.status(500).json({
+        error: `Failed to fetch image from Google Drive`,
+        details: {
+          googleStatus: response.status,
+          googleStatusText: response.statusText,
+          fileId: fileId,
+          url: url.substring(0, 100),
+          responsePreview: errorText.substring(0, 200),
+        },
       });
     }
 
@@ -98,11 +107,22 @@ export const proxyGoogleDriveImage: RequestHandler = async (req, res) => {
   } catch (error) {
     console.error("[GoogleDriveProxy] ❌ Error:", error);
     const errorMsg = error instanceof Error ? error.message : String(error);
-    res
-      .status(500)
-      .json({
-        error: "Failed to proxy image",
-        message: errorMsg,
+
+    // Check if it's an abort/timeout error
+    if (errorMsg.includes("AbortError") || errorMsg.includes("timeout")) {
+      console.error("[GoogleDriveProxy]    Timeout ou conexão abortada");
+      return res.status(504).json({
+        error: "Gateway Timeout",
+        message: "Timeout ao tentar buscar imagem do Google Drive (15s limite)",
       });
+    }
+
+    res.status(500).json({
+      error: "Failed to proxy image",
+      message: errorMsg,
+      details: {
+        errorType: error instanceof Error ? error.constructor.name : "Unknown",
+      },
+    });
   }
 };
