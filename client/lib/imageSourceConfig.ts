@@ -9,17 +9,17 @@ const STORAGE_KEY = 'image_source_preference';
 
 /**
  * Get the current image source preference
- * Defaults to Supabase if not configured
+ * Defaults to Google Drive if available, otherwise Supabase
  */
 export function getImageSource(): ImageSource {
   const preference = localStorage.getItem(STORAGE_KEY) as ImageSource | null;
-  
+
   if (preference === 'googledrive' || preference === 'supabase') {
     return preference;
   }
 
-  // Default to supabase if not set
-  return 'supabase';
+  // Default to Google Drive if available, otherwise Supabase
+  return isGoogleDriveAvailable() ? 'googledrive' : 'supabase';
 }
 
 /**

@@ -6,7 +6,7 @@
 // Cache for checked image paths
 const imageCache = new Map<string, string[]>();
 // Cache for folder structure
-const folderCache = new Map<string, string[]>();
+const folderCache = new Map<string, { id: string; name: string }[]>();
 
 const apiKey = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
 const parentFolderId = import.meta.env.VITE_GOOGLE_DRIVE_FOLDER_ID;
@@ -68,12 +68,10 @@ async function searchImagesInFolder(folderId: string, code: string, folderName: 
           const matches = nameLower.includes(codeLower) || fileWithoutExt === codeWithoutExt || fileWithoutExt.includes(codeWithoutExt);
 
           if (matches) {
-            // Use direct Google Drive link with export=view (no need for proxy in most cases)
-            // export=view: displays in browser (for public/shared files)
-            // Proxy will fallback if needed
+            // Use direct Google Drive link with export=view
+            // This works both locally and in production for public/shared files
             const directLink = `https://drive.google.com/uc?id=${file.id}&export=view`;
-            const proxyUrl = `/api/proxy-google-image?url=${encodeURIComponent(directLink)}`;
-            images.push(proxyUrl);
+            images.push(directLink);
             console.log(`[GoogleDrive]      ✅ ${file.name} (ID: ${file.id})`);
           }
         }
@@ -99,8 +97,8 @@ async function getSubfolders(folderId: string, parentName: string = ''): Promise
   if (folderCache.has(cacheKey)) {
     const cached = folderCache.get(cacheKey);
     if (cached) {
-      console.log(`[GoogleDrive] 📦 Subpastas em cache de "${parentName}": ${(cached as any[]).length} pasta(s)`);
-      return cached as {id: string, name: string}[];
+      console.log(`[GoogleDrive] 📦 Subpastas em cache de "${parentName}": ${cached.length} pasta(s)`);
+      return cached;
     }
   }
 
