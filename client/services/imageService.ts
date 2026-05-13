@@ -20,27 +20,11 @@ export interface ProductImage {
 // Cache for checked image paths to avoid repeated failed requests
 const imageCache = new Map<string, string[]>();
 
-// Cache for folder structure
-interface FolderStructure {
-  [path: string]: {
-    folders: string[];
-    files: { name: string; path: string }[];
-  };
-}
-const folderStructureCache: FolderStructure = {};
-let folderStructureCacheReady = false;
-let folderStructureCacheLoading = false;
-const folderCachePromise = new Promise<void>((resolve) => {
-  folderStructureCache._resolveReady = resolve;
-});
-
 /**
  * Função desativada - usando apenas Google Drive
  */
 export async function preCacheFolderStructure(): Promise<void> {
   console.log("[imageService] Supabase Storage desativado");
-  folderStructureCacheReady = true;
-  folderStructureCache._resolveReady?.();
 }
 
 
@@ -66,36 +50,16 @@ export async function findProductImages(code: string): Promise<string[]> {
 /**
  * Normalize image paths from Supabase records or web URLs
  * Handles both direct web paths and legacy database paths
- * In production: converts to Supabase Storage URLs
- * In development: uses local paths
+ * Returns the path unchanged if it's already a full URL
  */
 function normalizeImagePath(imagePath: string): string {
   if (!imagePath) return imagePath;
 
-  // Fix corrupted URLs from previous backend bug (which inserted /public/catalogo/)
-  if (imagePath.includes("/public/catalogo/imagens/")) {
-    imagePath = imagePath.replace("/public/catalogo/imagens/", "/imagens/");
-  }
-
-  // If already a full URL, return as-is
+  // If already a full URL (http/https or Google Drive), return as-is
   if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
 
-  // In production, convert to Supabase Storage URL
-  if (shouldUseSupabaseStorage()) {
-    // Remove leading /catalogo/imagens/ if present
-    let cleanPath = imagePath;
-    if (cleanPath.startsWith("/catalogo/imagens/")) {
-      cleanPath = cleanPath.replace(/^\/catalogo\/imagens\//, "");
-    } else if (cleanPath.startsWith("catalogo/imagens/")) {
-      cleanPath = cleanPath.replace(/^catalogo\/imagens\//, "");
-    }
-
-    return getImageStorageUrl(cleanPath);
-  }
-
-  // In development, use local paths
   // If path already starts with /, it's a web path and is ready to use
   if (imagePath.startsWith("/")) {
     return imagePath;

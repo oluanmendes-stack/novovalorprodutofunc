@@ -6,7 +6,7 @@
 // Cache for checked image paths
 const imageCache = new Map<string, string[]>();
 // Cache for folder structure
-const folderCache = new Map<string, string[]>();
+const folderCache = new Map<string, { id: string; name: string }[]>();
 
 const apiKey = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY;
 const parentFolderId = import.meta.env.VITE_GOOGLE_DRIVE_FOLDER_ID;
@@ -97,8 +97,8 @@ async function getSubfolders(folderId: string, parentName: string = ''): Promise
   if (folderCache.has(cacheKey)) {
     const cached = folderCache.get(cacheKey);
     if (cached) {
-      console.log(`[GoogleDrive] 📦 Subpastas em cache de "${parentName}": ${(cached as any[]).length} pasta(s)`);
-      return cached as {id: string, name: string}[];
+      console.log(`[GoogleDrive] 📦 Subpastas em cache de "${parentName}": ${cached.length} pasta(s)`);
+      return cached;
     }
   }
 

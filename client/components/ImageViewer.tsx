@@ -104,7 +104,10 @@ export default function ImageViewer({
   const handleCopyShareLink = () => {
     if (!currentImage) return;
 
-    const shareUrl = `${window.location.origin}${currentImage}`;
+    // If URL is already a full URL (like Google Drive), use as-is
+    const shareUrl = currentImage.startsWith('http')
+      ? currentImage
+      : `${window.location.origin}${currentImage}`;
     navigator.clipboard.writeText(shareUrl);
     toast.success("Link copiado para clipboard!");
   };

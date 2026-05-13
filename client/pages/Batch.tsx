@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { getCatalogStorageUrl } from "@/lib/supabase-storage";
+import { findGoogleDriveCatalog } from "@/services/googleDriveCatalogService";
 import { getDescriptor } from "@/services/catalogService";
 import {
   Plus,
@@ -308,11 +308,8 @@ export default function Batch() {
 
   const handleCopyCatalogPath = async (code: string) => {
     try {
-      const catalogUrl = getCatalogStorageUrl(code);
-
-      // Verify if the file exists when using Supabase
-      const fileResponse = await fetch(catalogUrl, { method: 'HEAD' });
-      if (!fileResponse.ok) {
+      const catalogUrl = await findGoogleDriveCatalog(code);
+      if (!catalogUrl) {
         toast.error("Catálogo não encontrado para este produto");
         return;
       }
@@ -333,10 +330,19 @@ export default function Batch() {
     }
   };
 
-  const handleCopyCatalogShareLink = (code: string) => {
-    const shareUrl = getCatalogStorageUrl(code);
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Link do catálogo copiado para compartilhar com cliente!");
+  const handleCopyCatalogShareLink = async (code: string) => {
+    try {
+      const shareUrl = await findGoogleDriveCatalog(code);
+      if (!shareUrl) {
+        toast.error("Catálogo não encontrado para este produto");
+        return;
+      }
+      navigator.clipboard.writeText(shareUrl);
+      toast.success("Link do catálogo copiado para compartilhar com cliente!");
+    } catch (error) {
+      console.error("Error copying catalog link:", error);
+      toast.error("Erro ao copiar link do catálogo");
+    }
   };
 
   const handleOpenImageViewer = (code: string) => {
