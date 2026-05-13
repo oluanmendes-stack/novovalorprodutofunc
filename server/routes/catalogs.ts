@@ -1,9 +1,73 @@
 import { RequestHandler } from "express";
 import * as fs from "fs";
 import * as path from "path";
+import { createClient } from "@supabase/supabase-js";
 
 const apiKey = process.env.VITE_GOOGLE_DRIVE_API_KEY;
 const catalogFolderId = '1gBxvgpDfyYJ34oYLGZOxru-4wO1hlp6i';
+
+// Initialize Supabase client for catalog lookups
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("[Catalogs] ERRO: Supabase credentials not configured");
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
+
+async function findSupabaseCatalog(code: string): Promise<string | null> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
+
+  try {
+    console.log(`[Catalogs] Buscando no Supabase: "${code}"`);
+
+    const { data, error } = await supabase
+      .storage
+      .from("catalogs")
+      .list("", { limit: 1000 });
+
+    if (error) {
+      console.error(`[Catalogs] Supabase erro:`, error);
+      return null;
+    }
+
+    if (!data || data.length === 0) {
+      console.log(`[Catalogs] Nenhum arquivo no Supabase`);
+      return null;
+    }
+
+    const codeLower = code.toLowerCase();
+    for (const file of data) {
+      const nameLower = file.name.toLowerCase();
+      if (
+        nameLower.includes(codeLower) &&
+        (nameLower.endsWith(".doc") ||
+          nameLower.endsWith(".docx") ||
+          nameLower.endsWith(".pdf"))
+      ) {
+        const { data: signedData } = await supabase
+          .storage
+          .from("catalogs")
+          .createSignedUrl(file.name, 3600);
+
+        if (signedData?.signedUrl) {
+          console.log(`✓ Catálogo encontrado no Supabase: ${file.name}`);
+          return signedData.signedUrl;
+        }
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("[Catalogs] Erro ao buscar no Supabase:", error);
+    return null;
+  }
+}
 
 async function findGoogleDriveCatalog(code: string): Promise<string | null> {
   if (!apiKey) {
@@ -60,12 +124,20 @@ export const findCatalogPath: RequestHandler = async (req, res) => {
     }
 
     console.log(`\n[Catalogs] BUSCA INICIADA: "${code}"`);
-    console.log(`[Catalogs] Usando Google Drive`);
 
-    const catalogUrl = await findGoogleDriveCatalog(code);
+    // Try Google Drive first
+    console.log(`[Catalogs] Tentando Google Drive...`);
+    let catalogUrl = await findGoogleDriveCatalog(code);
+    let source = "google-drive";
+
+    // If not found in Google Drive, try Supabase
+    if (!catalogUrl) {
+      console.log(`[Catalogs] Não encontrado no Google Drive, tentando Supabase...`);
+      catalogUrl = await findSupabaseCatalog(code);
+      source = "supabase";
+    }
 
     if (catalogUrl) {
-      // Return direct Google Drive URL for sharing (no proxy needed for downloads/sharing)
       console.log(`[Catalogs] ✓ BUSCA COMPLETA - Catálogo encontrado\n`);
       res.json({
         success: true,
@@ -73,7 +145,7 @@ export const findCatalogPath: RequestHandler = async (req, res) => {
           code,
           path: catalogUrl,
           paths: [catalogUrl],
-          source: "google-drive",
+          source,
         },
       });
     } else {
