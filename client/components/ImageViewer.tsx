@@ -64,7 +64,25 @@ export default function ImageViewer({
     if (!currentImage) return;
 
     try {
-      const response = await fetch(currentImage);
+      let response = await fetch(currentImage);
+
+      // If proxy fails, try direct Google Drive link
+      if (!response.ok && currentImage.includes('/api/proxy-google-image')) {
+        const urlParam = new URL(currentImage, window.location.origin).searchParams.get('url');
+        if (urlParam) {
+          try {
+            const decodedUrl = decodeURIComponent(urlParam);
+            const fileId = decodedUrl.match(/[?&]id=([^&]+)/)?.[1];
+            if (fileId) {
+              const directUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
+              response = await fetch(directUrl);
+            }
+          } catch (e) {
+            console.error('Erro ao construir URL de fallback:', e);
+          }
+        }
+      }
+
       if (!response.ok) throw new Error("Failed to download image");
 
       const blob = await response.blob();
@@ -143,10 +161,29 @@ export default function ImageViewer({
                     onError={(e) => {
                       console.error(`[ImageViewer] ❌ Erro ao carregar imagem`);
                       console.error(`[ImageViewer]    URL: ${currentImage}`);
-                      console.error(`[ImageViewer]    Status: ${(e.target as any).status}`);
 
-                      // Handle missing images gracefully
+                      // Try fallback to direct Google Drive link
                       const img = e.target as HTMLImageElement;
+                      if (currentImage.includes('/api/proxy-google-image')) {
+                        try {
+                          const urlParam = new URL(currentImage, window.location.origin).searchParams.get('url');
+                          if (urlParam) {
+                            const decodedUrl = decodeURIComponent(urlParam);
+                            const fileId = decodedUrl.match(/[?&]id=([^&]+)/)?.[1];
+                            if (fileId && !img.getAttribute('data-fallback-tried')) {
+                              console.log(`[ImageViewer] 🔄 Tentando fallback com URL direta do Google Drive...`);
+                              img.setAttribute('data-fallback-tried', 'true');
+                              const directUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
+                              img.src = directUrl;
+                              return; // Wait for the fallback attempt
+                            }
+                          }
+                        } catch (fallbackErr) {
+                          console.error('Erro ao construir fallback:', fallbackErr);
+                        }
+                      }
+
+                      // If no fallback or fallback failed, show error message
                       img.style.display = 'none';
                       const container = img.parentElement;
                       if (container && !container.querySelector('[data-error-shown]')) {
@@ -155,10 +192,9 @@ export default function ImageViewer({
                         errorDiv.className = 'flex flex-col items-center justify-center h-96 text-muted-foreground';
                         errorDiv.innerHTML = `
                           <div class="text-center space-y-3">
-                            <p><strong>Erro ao carregar imagem</strong></p>
-                            <p class="text-xs break-all max-w-md">URL: ${currentImage}</p>
-                            <p class="text-xs text-orange-600">Problema de carregamento via proxy</p>
-                            <p class="text-xs text-gray-500">Verifique o console (F12) para mais detalhes</p>
+                            <p><strong>⚠️ Erro ao carregar imagem</strong></p>
+                            <p class="text-xs break-all max-w-md">Arquivo pode estar privado ou expirado</p>
+                            <p class="text-xs text-gray-500">Tente atualizar a página ou verifique as permissões no Google Drive</p>
                           </div>
                         `;
                         container.appendChild(errorDiv);
