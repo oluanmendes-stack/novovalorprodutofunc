@@ -121,26 +121,16 @@ export const proxyGoogleDriveImage: RequestHandler = async (req, res) => {
       }
     }
 
-    // Strategy 3: Fallback to client-side redirect
+    // Strategy 3: Fallback to direct HTML redirect or 302 redirect
     if (!response) {
-      console.log(`[GoogleDriveProxy] ℹ️ Todos os métodos falharam, usando redirect do lado do cliente`);
+      console.log(`[GoogleDriveProxy] ℹ️ Todos os métodos falharam, tentando redirect HTTP`);
 
-      // Return a special response that tells the client to redirect
-      // This works for files that are public but have CORS restrictions
-      return res.status(307).json({
-        error: "Cannot proxy this image",
-        reason: "File requires authentication or has CORS restrictions",
-        message:
-          "O servidor não conseguiu fazer proxy desta imagem. Certifique-se de que: 1) O arquivo é público no Google Drive, ou 2) A chave de API do Google está configurada corretamente",
-        fileId: fileId,
-        fallbackUrl: fileId
-          ? `https://drive.google.com/uc?id=${fileId}&export=view`
-          : url,
-        methods_tried: [
-          "Google Drive API v3 (alt=media)",
-          "Direct download link",
-        ],
-      });
+      const fallbackUrl = fileId
+        ? `https://drive.google.com/uc?id=${fileId}&export=view`
+        : url;
+
+      // Use HTTP redirect (302) so browser follows to Google Drive directly
+      return res.redirect(302, fallbackUrl);
     }
 
     // Get the content type
