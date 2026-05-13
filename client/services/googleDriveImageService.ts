@@ -68,9 +68,10 @@ async function searchImagesInFolder(folderId: string, code: string, folderName: 
           const matches = nameLower.includes(codeLower) || fileWithoutExt === codeWithoutExt || fileWithoutExt.includes(codeWithoutExt);
 
           if (matches) {
-            // Use direct Google Drive URL (no proxy)
+            // Use proxy URL to bypass CORS restrictions in the browser
             const directLink = `https://drive.google.com/uc?id=${file.id}&export=view`;
-            images.push(directLink);
+            const proxyUrl = `/api/proxy-google-image?url=${encodeURIComponent(directLink)}`;
+            images.push(proxyUrl);
             console.log(`[GoogleDrive]      ✅ ${file.name}`);
           }
         }

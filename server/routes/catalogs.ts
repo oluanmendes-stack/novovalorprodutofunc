@@ -65,6 +65,7 @@ export const findCatalogPath: RequestHandler = async (req, res) => {
     const catalogUrl = await findGoogleDriveCatalog(code);
 
     if (catalogUrl) {
+      // Return direct Google Drive URL for sharing (no proxy needed for downloads/sharing)
       console.log(`[Catalogs] ✓ BUSCA COMPLETA - Catálogo encontrado\n`);
       res.json({
         success: true,
