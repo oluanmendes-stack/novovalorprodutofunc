@@ -1,5 +1,5 @@
 [build]
-command = "npm run build"
+command = "pnpm build"
 functions = "netlify/functions"
 publish = "dist/spa"
 environment = { NODE_ENV = "production" }
