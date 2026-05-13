@@ -88,7 +88,7 @@ export default function Layout({ children }: LayoutProps) {
           {/* Footer */}
           <div className="p-4 border-t border-sidebar-border">
             <p className="text-xs text-sidebar-foreground/50">
-              v1.0.0 • Sistema de Gestão de Preços
+              v2.0.0 • Sistema de Gestão de Preços
             </p>
           </div>
         </div>

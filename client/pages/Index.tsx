@@ -5,7 +5,6 @@ import ProductSearch from "@/components/ProductSearch";
 import ImageViewer from "@/components/ImageViewer";
 import CatalogViewer from "@/components/CatalogViewer";
 import SupabaseDebug from "@/components/SupabaseDebug";
-import { getCatalogStorageUrl } from "@/lib/supabase-storage";
 import { useProducts, type Product } from "@/hooks/useProducts";
 import { useConfig } from "@/hooks/useConfig";
 import { Button } from "@/components/ui/button";
@@ -136,15 +135,26 @@ export default function Index() {
     setCatalogViewerOpen(true);
   };
 
-  const handleCopyCatalogShareLink = () => {
+  const handleCopyCatalogShareLink = async () => {
     if (!selectedProduct) {
       toast.error("Selecione um produto primeiro");
       return;
     }
 
-    const shareUrl = getCatalogStorageUrl(selectedProduct.code);
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Link do catálogo copiado para compartilhar com cliente!");
+    try {
+      const response = await fetch(`/api/catalogo/${selectedProduct.code}`);
+      const data = await response.json();
+
+      if (data.success && data.data.path) {
+        navigator.clipboard.writeText(data.data.path);
+        toast.success("Link do catálogo do Google Drive copiado para compartilhar!");
+      } else {
+        toast.error("Catálogo não encontrado");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar URL do catálogo:", error);
+      toast.error("Erro ao copiar link do catálogo");
+    }
   };
 
   return (
@@ -493,7 +503,6 @@ export default function Index() {
       {selectedProduct && (
         <CatalogViewer
           productCode={selectedProduct.code}
-          catalogPath={getCatalogStorageUrl(selectedProduct.code)}
           open={catalogViewerOpen}
           onOpenChange={setCatalogViewerOpen}
         />
