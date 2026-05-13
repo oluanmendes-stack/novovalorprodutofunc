@@ -30,8 +30,17 @@ export const proxyGoogleDriveImage: RequestHandler = async (req, res) => {
     }
 
     // Try with alt=media parameter for direct download
+    const apiKey = process.env.VITE_GOOGLE_DRIVE_API_KEY;
+    if (!apiKey) {
+      console.error("[GoogleDriveProxy] ❌ VITE_GOOGLE_DRIVE_API_KEY não está configurado");
+      return res.status(500).json({
+        error: "API key not configured",
+        message: "VITE_GOOGLE_DRIVE_API_KEY environment variable is not set",
+      });
+    }
+
     const targetUrl = fileId
-      ? `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${process.env.VITE_GOOGLE_DRIVE_API_KEY}`
+      ? `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${apiKey}`
       : url;
 
     console.log(`[GoogleDriveProxy]    Target URL: ${targetUrl.substring(0, 100)}...`);
