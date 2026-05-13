@@ -1,0 +1,159 @@
+================================================================================
+                          🚀 COMECE AQUI 🚀
+================================================================================
+
+BEM-VINDO! Seu sistema foi atualizado para importar produtos com 6 COLUNAS de
+preço (ao invés de 4).
+
+================================================================================
+                       ⚡ COMEÇAR EM 3 PASSOS ⚡
+================================================================================
+
+PASSO 1: Preparar Banco de Dados (2 minutos)
+──────────────────────────────────────────────────────────────────────────────
+→ Abra o arquivo: EXECUTE_ESTE_SQL.md
+→ Copie TODO o SQL
+→ Cole no SQL Editor do Supabase (https://supabase.com)
+→ Clique em RUN (botão azul)
+
+PASSO 2: Importar Dados (2 minutos)
+──────────────────────────────────────────────────────────────────────────────
+→ Abra a aplicação
+→ Vá para: ⚙️ Configurações
+→ Procure: "Gerenciar Produtos"
+→ Clique: "Importar CSV"
+→ Selecione seu arquivo com 6 colunas
+
+PASSO 3: Verificar (1 minuto)
+──────────────────────────────────────────────────────────────────────────────
+→ Você deve ver: "Total de produtos: 123" (ou outro número)
+→ PRONTO! ✅
+
+================================================================================
+                      📚 ARQUIVOS IMPORTANTES
+================================================================================
+
+PARA COMEÇAR RÁPIDO:
+  ✓ COMECE_AQUI.md - Guia em 3 passos (leia primeiro!)
+  ✓ EXECUTE_ESTE_SQL.md - SQL pronto para copiar/colar
+
+PARA ENTENDER TUDO:
+  ✓ README_IMPORTACAO.md - Documentação completa (muito detalhado)
+  ✓ FAQ.md - Respostas para dúvidas
+
+PARA REFERÊNCIA:
+  ✓ DIAGRAMA_FLUXO.md - Visuais de como funciona
+  ✓ exemplo_importacao.csv - Arquivo CSV de exemplo
+  ✓ INDICE_ARQUIVOS.md - Índice de todos os arquivos
+
+TÉCNICO:
+  ✓ supabase-setup.sql - Script SQL completo
+  ✓ SETUP_SUPABASE.md - Documentação técnica
+  ✓ RESUMO_MUDANCAS.md - O que foi alterado
+
+================================================================================
+                        📋 NOVO FORMATO CSV
+================================================================================
+
+Seu arquivo CSV deve ter EXATAMENTE 6 colunas:
+
+Fabricante;Descrição;Preço Distribuidor s/ IPI;Preço Distribuidor c/ IPI;Preço Unit. Final s/ IPI;Preço Final c/ IPI
+
+Exemplo:
+5L500;BATERIA DE LITIO NAO RECARREGAVEL;2.288,58;2.511,72;2.542,87;2.790,80
+
+REGRAS IMPORTANTES:
+✓ Use ponto-e-vírgula (;) para separar colunas
+✓ Use vírgula (,) para decimais (2.288,58 SIM | 2288.58 NÃO)
+✓ Não use aspas ao redor de valores
+✓ Sem espaços extras
+✓ Sem linhas vazias
+✓ Sem códigos duplicados
+
+================================================================================
+                         ⚠️ IMPORTANTE
+================================================================================
+
+O comando DROP TABLE (no SQL) DELETA TODOS OS DADOS ANTIGOS sem possibilidade
+de recuperação.
+
+SE VOCÊ QUER MANTER DADOS ANTIGOS:
+→ Abra EXECUTE_ESTE_SQL.md
+→ Remova a linha: DROP TABLE IF EXISTS products CASCADE;
+→ Execute o resto do SQL
+
+SE VOCÊ QUER DELETAR TUDO E COMEÇAR DO ZERO:
+→ Execute o SQL completo (com DROP TABLE)
+
+================================================================================
+                       ✅ CHECKLIST RÁPIDO
+================================================================================
+
+Antes de começar:
+  [ ] Arquivo CSV tem 6 colunas?
+  [ ] Coluna separadora é ponto-e-vírgula (;)?
+  [ ] Decimal usa vírgula (,)?
+  [ ] Não há linhas vazias?
+  [ ] Códigos não se repetem?
+
+Depois de executar SQL:
+  [ ] Acessei SQL Editor do Supabase?
+  [ ] Copiei e colei o SQL?
+  [ ] Cliquei em RUN?
+
+Depois de importar:
+  [ ] Aplicação mostra "Total de produtos: X"?
+  [ ] Consegui buscar um produto?
+  [ ] Consegui exportar?
+
+Se tudo ✅ = SUCESSO! 🎉
+
+================================================================================
+                         ❓ DÚVIDAS COMUNS
+================================================================================
+
+P: Por onde começo?
+R: Leia COMECE_AQUI.md (5 minutos)
+
+P: Qual é o primeiro arquivo a executar?
+R: EXECUTE_ESTE_SQL.md (copie e cole no Supabase)
+
+P: Meu CSV está errado, o que faço?
+R: Veja FAQ.md ou exemplo_importacao.csv
+
+P: Algo deu errado, e agora?
+R: Abra README_IMPORTACAO.md e procure por "Troubleshooting"
+
+P: Quero entender tudo que foi feito
+R: Leia RESUMO_MUDANCAS.md e DIAGRAMA_FLUXO.md
+
+================================================================================
+                        🎯 PRÓXIMO PASSO
+================================================================================
+
+→ ABRA AGORA: COMECE_AQUI.md
+
+Este arquivo vai te guiar pelos 3 passos em apenas 5 minutos!
+
+================================================================================
+                      📞 REFERÊNCIA RÁPIDA
+================================================================================
+
+Arquivo original:     tabela_precos_produtos.csv (você forneceu)
+Novo formato:        6 colunas de preço (incluindo distribuidor e revenda)
+Banco de dados:      Supabase (tabela: products)
+Aplicação:           ⚙️ Configurações → Gerenciar Produtos
+
+Colunas do CSV:
+1. Fabricante (código do produto)
+2. Descrição
+3. Preço Distribuidor SEM IPI
+4. Preço Distribuidor COM IPI
+5. Preço Final SEM IPI
+6. Preço Final COM IPI
+
+================================================================================
+
+Pronto! Comece a ler COMECE_AQUI.md agora mesmo! 🚀
+
+================================================================================

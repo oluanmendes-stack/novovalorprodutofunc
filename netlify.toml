@@ -1,0 +1,42 @@
+[build]
+command = "npm run build"
+functions = "netlify/functions"
+publish = "dist/spa"
+environment = { NODE_ENV = "production" }
+
+# Cache headers for static assets
+[[headers]]
+for = "/catalogo/**"
+[headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+  Content-Type = "application/octet-stream"
+
+# Cache headers for images
+[[headers]]
+for = "/catalogo/imagens/**"
+[headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache headers for descriptors (txt files)
+[[headers]]
+for = "/catalogo/descritivos/**"
+[headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+  Content-Type = "text/plain; charset=utf-8"
+
+[functions]
+external_node_modules = ["express", "cors", "pdf-parse", "pdfjs-dist", "serverless-http"]
+node_bundler = "esbuild"
+
+# Redirect all /api/* requests to serverless function
+[[redirects]]
+force = true
+from = "/api/*"
+status = 200
+to = "/.netlify/functions/api/:splat"
+
+# SPA routing: redirect 404s to index.html for React Router
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200

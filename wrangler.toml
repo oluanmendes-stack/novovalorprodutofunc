@@ -1,0 +1,13 @@
+compatibility_date = "2025-01-01"
+name = "valorproduto7"
+pages_build_output_dir = "dist/spa"
+compatibility_flags = [ "nodejs_compat" ]
+
+[vars]
+# SUPABASE_URL and SUPABASE_KEY should be set in Cloudflare Dashboard
+# These are just for local development simulation
+SUPABASE_URL = "..."
+SUPABASE_KEY = "..."
+
+[dev]
+port = 8080

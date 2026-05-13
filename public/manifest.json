@@ -1,0 +1,21 @@
+{
+  "name": "Valor Produto",
+  "short_name": "ValorProduto",
+  "description": "Sistema de Gestão de Preços e Catálogos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1f72f4",
+  "theme_color": "#1f72f4",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
