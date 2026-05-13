@@ -58,8 +58,9 @@ export async function createServer() {
   console.log(`\n[Server] Process working directory: ${process.cwd()}`);
   console.log(`[Server] SUPABASE_URL is set: ${!!process.env.SUPABASE_URL}`);
   console.log(`[Server] SUPABASE_KEY is set: ${!!process.env.SUPABASE_KEY}`);
+  console.log(`[Server] VITE_GOOGLE_DRIVE_API_KEY is set: ${!!process.env.VITE_GOOGLE_DRIVE_API_KEY}`);
+  console.log(`[Server] VITE_GOOGLE_DRIVE_FOLDER_ID is set: ${!!process.env.VITE_GOOGLE_DRIVE_FOLDER_ID}`);
   console.log(`[Server] NODE_ENV: ${process.env.NODE_ENV}`);
-  console.log(`[Server] Environment keys: ${Object.keys(process.env).join(", ")}`);
 
   const app = express();
 
