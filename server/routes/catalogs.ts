@@ -65,14 +65,13 @@ export const findCatalogPath: RequestHandler = async (req, res) => {
     const catalogUrl = await findGoogleDriveCatalog(code);
 
     if (catalogUrl) {
-      const proxyUrl = `/api/proxy-google-image?url=${encodeURIComponent(catalogUrl)}`;
       console.log(`[Catalogs] ✓ BUSCA COMPLETA - Catálogo encontrado\n`);
       res.json({
         success: true,
         data: {
           code,
-          path: proxyUrl,
-          paths: [proxyUrl],
+          path: catalogUrl,
+          paths: [catalogUrl],
           source: "google-drive",
         },
       });
