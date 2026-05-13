@@ -4,10 +4,12 @@ pages_build_output_dir = "dist/spa"
 compatibility_flags = [ "nodejs_compat" ]
 
 [vars]
-# SUPABASE_URL and SUPABASE_KEY should be set in Cloudflare Dashboard
-# These are just for local development simulation
-SUPABASE_URL = "..."
-SUPABASE_KEY = "..."
+# These variables should be set in Cloudflare Dashboard
+# For local development, set them in .env file
+VITE_GOOGLE_DRIVE_API_KEY = "AIzaSyB8oIB_OOEwpaX4M0MExNWL8xUrgGmlVc0"
+VITE_GOOGLE_DRIVE_FOLDER_ID = "13eaiAf8VvEqxVvcxi2FEAG3IOwZxsa54"
+SUPABASE_URL = "https://xlulghxjzkjlxkvpcbrr.supabase.co"
+SUPABASE_KEY = "sb_publishable_t67D4f83gG7UWTKhgNURiQ_se7UWuAl"
 
 [dev]
 port = 8080
