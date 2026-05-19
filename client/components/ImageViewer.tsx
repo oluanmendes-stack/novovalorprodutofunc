@@ -65,31 +65,41 @@ export default function ImageViewer({
 
     try {
       let response = await fetch(currentImage);
+      let usedUrl = currentImage;
 
       // If proxy fails, try direct Google Drive link
       if (!response.ok && currentImage.includes('/api/proxy-google-image')) {
-        const urlParam = new URL(currentImage, window.location.origin).searchParams.get('url');
-        if (urlParam) {
-          try {
+        try {
+          const urlParam = new URL(currentImage, window.location.origin).searchParams.get('url');
+          if (urlParam) {
             const decodedUrl = decodeURIComponent(urlParam);
             const fileId = decodedUrl.match(/[?&]id=([^&]+)/)?.[1];
             if (fileId) {
-              const directUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
-              response = await fetch(directUrl);
+              // Try download export first
+              const downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
+              response = await fetch(downloadUrl);
+              usedUrl = downloadUrl;
+
+              // If that fails, try view export
+              if (!response.ok) {
+                const viewUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
+                response = await fetch(viewUrl);
+                usedUrl = viewUrl;
+              }
             }
-          } catch (e) {
-            console.error('Erro ao construir URL de fallback:', e);
           }
+        } catch (e) {
+          console.error('Erro ao construir URL de fallback:', e);
         }
       }
 
-      if (!response.ok) throw new Error("Failed to download image");
+      if (!response.ok) throw new Error(`Failed to download image (${response.status})`);
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = currentImage.split("/").pop() || "image";
+      link.download = `image-${Date.now()}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -97,7 +107,8 @@ export default function ImageViewer({
 
       toast.success("Imagem baixada");
     } catch (err) {
-      toast.error("Erro ao baixar imagem");
+      console.error("Erro ao baixar:", err);
+      toast.error("Erro ao baixar imagem. Verifique as permissões no Google Drive.");
     }
   };
 
@@ -185,7 +196,9 @@ export default function ImageViewer({
 
                       // Try fallback to direct Google Drive link
                       const img = e.target as HTMLImageElement;
-                      if (currentImage.includes('/api/proxy-google-image')) {
+                      const isProxyUrl = currentImage.includes('/api/proxy-google-image');
+
+                      if (isProxyUrl) {
                         try {
                           const urlParam = new URL(currentImage, window.location.origin).searchParams.get('url');
                           if (urlParam) {
@@ -194,9 +207,17 @@ export default function ImageViewer({
                             if (fileId && !img.getAttribute('data-fallback-tried')) {
                               console.log(`[ImageViewer] 🔄 Tentando fallback com URL direta do Google Drive...`);
                               img.setAttribute('data-fallback-tried', 'true');
+                              // Try direct export=view first
                               const directUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
                               img.src = directUrl;
                               return; // Wait for the fallback attempt
+                            } else if (fileId && img.getAttribute('data-fallback-tried') === 'true') {
+                              // If direct view failed, try with download export
+                              console.log(`[ImageViewer] 🔄 Tentando com export=download...`);
+                              img.setAttribute('data-fallback-tried', 'download');
+                              const downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
+                              img.src = downloadUrl;
+                              return;
                             }
                           }
                         } catch (fallbackErr) {
@@ -215,7 +236,8 @@ export default function ImageViewer({
                           <div class="text-center space-y-3">
                             <p><strong>⚠️ Erro ao carregar imagem</strong></p>
                             <p class="text-xs break-all max-w-md">Arquivo pode estar privado ou expirado</p>
-                            <p class="text-xs text-gray-500">Tente atualizar a página ou verifique as permissões no Google Drive</p>
+                            <p class="text-xs text-gray-500">Verifique as permissões no Google Drive e tente atualizar a página</p>
+                            <p class="text-xs text-gray-400 mt-2">ID: <code class="bg-gray-100 px-1 py-0.5 rounded">${fileId || 'desconhecido'}</code></p>
                           </div>
                         `;
                         container.appendChild(errorDiv);
