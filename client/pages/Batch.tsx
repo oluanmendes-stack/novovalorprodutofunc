@@ -355,6 +355,23 @@ export default function Batch() {
     setCatalogViewerOpen(true);
   };
 
+  const getRealImageLink = (proxyUrl: string): string => {
+    // If it's a proxy URL, extract the real Google Drive link
+    if (proxyUrl.includes('/api/proxy-google-image')) {
+      try {
+        const urlParam = new URL(proxyUrl, window.location.origin).searchParams.get('url');
+        if (urlParam) {
+          return decodeURIComponent(urlParam);
+        }
+      } catch (e) {
+        console.error('Erro ao extrair link real:', e);
+      }
+    }
+
+    // If already a direct URL, return as-is
+    return proxyUrl.startsWith('http') ? proxyUrl : null;
+  };
+
   const handleCopyImageLink = async (code: string) => {
     try {
       const product = products.find((p) => p.code === code);
@@ -372,14 +389,17 @@ export default function Batch() {
         return;
       }
 
-      // Copy the first image URL
+      // Get the first image URL and extract the real link if it's a proxy
       const imageUrl = images[0];
-      const fullUrl = imageUrl.startsWith('http')
-        ? imageUrl
-        : `${window.location.origin}${imageUrl}`;
+      const realLink = getRealImageLink(imageUrl);
 
-      await navigator.clipboard.writeText(fullUrl);
-      toast.success("Link da foto copiado para compartilhar!");
+      if (!realLink) {
+        toast.error("Não foi possível extrair o link real da foto");
+        return;
+      }
+
+      await navigator.clipboard.writeText(realLink);
+      toast.success("Link real da foto copiado!");
     } catch (error) {
       console.error("Error copying image link:", error);
       toast.error("Erro ao copiar link da foto");

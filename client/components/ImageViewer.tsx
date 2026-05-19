@@ -101,15 +101,33 @@ export default function ImageViewer({
     }
   };
 
-  const handleCopyShareLink = () => {
-    if (!currentImage) return;
+  const getGoogleDriveLink = () => {
+    if (!currentImage) return null;
 
-    // If URL is already a full URL (like Google Drive), use as-is
-    const shareUrl = currentImage.startsWith('http')
-      ? currentImage
-      : `${window.location.origin}${currentImage}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Link copiado para clipboard!");
+    // If it's a proxy URL, extract the real Google Drive link
+    if (currentImage.includes('/api/proxy-google-image')) {
+      try {
+        const urlParam = new URL(currentImage, window.location.origin).searchParams.get('url');
+        if (urlParam) {
+          return decodeURIComponent(urlParam);
+        }
+      } catch (e) {
+        console.error('Erro ao extrair link real:', e);
+      }
+    }
+
+    // If already a direct URL, return as-is
+    return currentImage.startsWith('http') ? currentImage : null;
+  };
+
+  const handleCopyShareLink = () => {
+    const realLink = getGoogleDriveLink();
+    if (!realLink) {
+      toast.error("Link não disponível");
+      return;
+    }
+    navigator.clipboard.writeText(realLink);
+    toast.success("Link real copiado para clipboard!");
   };
 
   const handleReject = () => {
@@ -307,9 +325,46 @@ export default function ImageViewer({
                 </div>
               </ScrollArea>
 
-              {/* File path info */}
-              <div className="bg-muted p-3 rounded text-xs text-muted-foreground break-all">
-                {currentImage}
+              {/* Real Google Drive link */}
+              {(() => {
+                const realLink = getGoogleDriveLink();
+                return realLink ? (
+                  <div className="space-y-2">
+                    <div className="text-xs text-muted-foreground font-medium">Link Real da Foto:</div>
+                    <div className="flex gap-2 items-stretch">
+                      <div className="flex-1 bg-blue-50 border border-blue-200 p-3 rounded text-xs break-all text-blue-900 font-mono overflow-auto max-h-16 flex items-center">
+                        {realLink}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(realLink);
+                          toast.success("Link copiado!");
+                        }}
+                        className="flex-shrink-0"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(realLink, '_blank')}
+                        className="flex-shrink-0"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* File path info (proxy URL) */}
+              <div className="text-xs text-muted-foreground">
+                <div className="font-medium mb-1">URL Proxy (interna):</div>
+                <div className="bg-muted p-3 rounded break-all">
+                  {currentImage}
+                </div>
               </div>
             </div>
           </div>
