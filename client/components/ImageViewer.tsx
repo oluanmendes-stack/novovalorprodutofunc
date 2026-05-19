@@ -197,27 +197,31 @@ export default function ImageViewer({
                       // Try fallback to direct Google Drive link
                       const img = e.target as HTMLImageElement;
                       const isProxyUrl = currentImage.includes('/api/proxy-google-image');
+                      let fileId = 'desconhecido';
 
                       if (isProxyUrl) {
                         try {
                           const urlParam = new URL(currentImage, window.location.origin).searchParams.get('url');
                           if (urlParam) {
                             const decodedUrl = decodeURIComponent(urlParam);
-                            const fileId = decodedUrl.match(/[?&]id=([^&]+)/)?.[1];
-                            if (fileId && !img.getAttribute('data-fallback-tried')) {
-                              console.log(`[ImageViewer] 🔄 Tentando fallback com URL direta do Google Drive...`);
-                              img.setAttribute('data-fallback-tried', 'true');
-                              // Try direct export=view first
-                              const directUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
-                              img.src = directUrl;
-                              return; // Wait for the fallback attempt
-                            } else if (fileId && img.getAttribute('data-fallback-tried') === 'true') {
-                              // If direct view failed, try with download export
-                              console.log(`[ImageViewer] 🔄 Tentando com export=download...`);
-                              img.setAttribute('data-fallback-tried', 'download');
-                              const downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
-                              img.src = downloadUrl;
-                              return;
+                            const extractedFileId = decodedUrl.match(/[?&]id=([^&]+)/)?.[1];
+                            if (extractedFileId) {
+                              fileId = extractedFileId;
+                              if (!img.getAttribute('data-fallback-tried')) {
+                                console.log(`[ImageViewer] 🔄 Tentando fallback com URL direta do Google Drive...`);
+                                img.setAttribute('data-fallback-tried', 'true');
+                                // Try direct export=view first
+                                const directUrl = `https://drive.google.com/uc?id=${fileId}&export=view`;
+                                img.src = directUrl;
+                                return; // Wait for the fallback attempt
+                              } else if (img.getAttribute('data-fallback-tried') === 'true') {
+                                // If direct view failed, try with download export
+                                console.log(`[ImageViewer] 🔄 Tentando com export=download...`);
+                                img.setAttribute('data-fallback-tried', 'download');
+                                const downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
+                                img.src = downloadUrl;
+                                return;
+                              }
                             }
                           }
                         } catch (fallbackErr) {
@@ -237,7 +241,7 @@ export default function ImageViewer({
                             <p><strong>⚠️ Erro ao carregar imagem</strong></p>
                             <p class="text-xs break-all max-w-md">Arquivo pode estar privado ou expirado</p>
                             <p class="text-xs text-gray-500">Verifique as permissões no Google Drive e tente atualizar a página</p>
-                            <p class="text-xs text-gray-400 mt-2">ID: <code class="bg-gray-100 px-1 py-0.5 rounded">${fileId || 'desconhecido'}</code></p>
+                            <p class="text-xs text-gray-400 mt-2">ID: <code class="bg-gray-100 px-1 py-0.5 rounded">${fileId}</code></p>
                           </div>
                         `;
                         container.appendChild(errorDiv);
